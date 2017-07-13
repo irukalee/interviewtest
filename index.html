@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>  
+<style>
+.progress-bar {
+  overflow: hidden;
+  position: relative;
+  text-align: center;
+  width: 80%;
+  height: 1.4rem;
+  display: block;
+  margin: 10vh auto;
+  background: rgba(0,0,0,0.1);
+}
+.progress-bar__slide {
+  position: absolute;
+  text-align: center;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: block;
+  background: green;
+  width: 2px;
+  transition: 2s cubic-bezier(.57, .12, .35, 1.2);
+}
+.progress-bar__percent {
+  z-index: 500;
+  display: block;
+  padding: 0 10px;
+  font-family: 'verdana';
+  font-size: 12px;
+  line-height: 1.4rem;
+  color: black;
+  position: absolute;
+  width: 100%;
+}
+</style>
+</head>
+
+<body style="text-align: center">
+<h1>Progress Bar Demo</h1>
+<div id="progessBarGroup">
+  
+</div>
+<select id="selectedBar">
+  
+</select>
+<div id="buttonBarGroup">
+  
+</div>
+
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(){
+  getAjax('http://pb-api.herokuapp.com/bars', function(data){ 
+    var obj = JSON.parse(data);
+    var buttonGroup = obj.buttons;
+    var barGroup = obj.bars;
+    var limit = obj.limit;
+
+    var barCount = 1;
+    var barHtml = "";
+    var selectHtml = "";
+    
+    var progessBarGroup = document.getElementById('progessBarGroup');
+    var selectedBar = document.getElementById('selectedBar');
+    barGroup.forEach(function(object) {
+      var newName = "progress-bar-"+barCount;
+        barHtml += '<div id="'+newName+'" class="progress-bar" style="width: 80%"><span class="progress-bar__slide" style="width: '+object+'%"></span><span class="progress-bar__percent">'+object+'%</span></div>';
+        selectHtml += '<option value='+newName+'>'+newName+'</option>';
+        barCount++;
+
+    });
+    progessBarGroup.innerHTML = barHtml;
+    selectedBar.innerHTML = selectHtml;
+
+
+    var buttonBarGroup = document.getElementById('buttonBarGroup');
+    var buttonHtml = "";
+    buttonGroup.forEach(function(object) {
+        buttonHtml += '<input type="submit" onclick="moveProgressBar('+object+', '+limit+')" value="'+object+'" />';
+    });
+    buttonBarGroup.innerHTML = buttonHtml;
+  });
+
+  
+    
+});
+
+function getAjax(url, success) {
+    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState>3 && xhr.status==200) success(xhr.responseText);
+    };
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send();
+    return xhr;
+}
+
+function moveProgressBar(moveLength, limit) {
+  var barName = document.getElementById('selectedBar').value;
+    var bars = document.getElementById(barName);
+    var movePercent = 0;
+    if(moveLength < 0){
+      moveLength = Math.abs(moveLength);
+      movePercent = moveLength / limit * 100;
+      movePercent = -Math.abs(movePercent);
+    }else{
+      movePercent = moveLength / limit * 100;
+    }
+
+    var currentvalue = parseInt(bars.children[1].innerHTML) + parseInt(movePercent.toFixed(0));
+    if(currentvalue <= 0){
+      bars.children[0].style.width = "0%";
+      bars.children[1].innerHTML = "0%";
+    }else if(currentvalue > 100){
+      bars.children[0].style.width = currentvalue+ "%";
+      bars.children[0].style.background = "red";
+      bars.children[1].innerHTML = currentvalue+ "%";
+    }else{
+      bars.children[0].style.background = 'green';
+      bars.children[0].style.width = currentvalue+ "%";
+      bars.children[1].innerHTML = currentvalue+ "%";
+    }
+}
+</script>
+</body>
+</html>
